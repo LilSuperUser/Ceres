@@ -21,6 +21,7 @@ csv = "1.3"
 
 # --- Database ---
 sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "postgres", "uuid", "chrono"] }
+pgvector = { version = "0.4", features = ["sqlx"] }
 
 # --- Observability & CLI ---
 tracing = "0.1"
