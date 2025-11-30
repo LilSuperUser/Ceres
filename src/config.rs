@@ -16,5 +16,9 @@ pub enum Command {
     /// Harvest data from CKAN portal
     Harvest { portal_url: String },
     /// Searches indexed datasets
-    Search { query: String, #[arg(long, default_value = "10")] limit: usize },
+    Search {
+        query: String,
+        #[arg(long, default_value = "10")]
+        limit: usize,
+    },
 }

@@ -13,7 +13,7 @@ pub enum AppError {
 
     #[error("Serialization error: {0}")]
     SerializationError(#[from] serde_json::Error),
-    
+
     #[error("Generic error: {0}")]
     Generic(String),
 }

@@ -1,8 +1,8 @@
-use sqlx::{PgPool, Postgres, Pool};
-use uuid::Uuid;
-use crate::models::{Dataset, NewDataset};
 use crate::error::AppError; // Assumiamo tu abbia creato error.rs come da struttura precedente
+use crate::models::{Dataset, NewDataset};
 use pgvector::Vector;
+use sqlx::{PgPool, Pool, Postgres};
+use uuid::Uuid;
 
 #[derive(Clone)]
 pub struct DatasetRepository {
@@ -14,7 +14,7 @@ impl DatasetRepository {
         Self { pool }
     }
 
-    /// Esegue un UPSERT: Inserisce il dataset o lo aggiorna se la coppia 
+    /// Esegue un UPSERT: Inserisce il dataset o lo aggiorna se la coppia
     /// (source_portal, original_id) esiste già.
     pub async fn upsert(&self, new_data: &NewDataset) -> Result<Uuid, AppError> {
         // Convertiamo il Vec<f32> in pgvector::Vector se presente

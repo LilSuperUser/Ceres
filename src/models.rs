@@ -1,9 +1,9 @@
+use chrono::{DateTime, Utc};
+use pgvector::Vector;
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
 use sqlx::types::Json;
 use uuid::Uuid;
-use chrono::{DateTime, Utc};
-use pgvector::Vector;
 
 /// Rappresentazione completa di una riga della tabella 'datasets'
 #[derive(Debug, FromRow, Serialize, Deserialize)]
@@ -14,13 +14,13 @@ pub struct Dataset {
     pub url: String,
     pub title: String,
     pub description: Option<String>,
-    
+
     // Mappatura automatica con la crate 'pgvector'
     pub embedding: Option<Vector>,
-    
+
     // Wrapper Json per gestire il tipo JSONB di Postgres
     pub metadata: Json<serde_json::Value>,
-    
+
     pub first_seen_at: DateTime<Utc>,
     pub last_updated_at: DateTime<Utc>,
 }

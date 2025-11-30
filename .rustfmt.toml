@@ -1,0 +1,23 @@
+# Rust 2024 Edition formatting (stable rustfmt)
+edition = "2024"
+max_width = 100
+hard_tabs = false
+tab_spaces = 4
+newline_style = "Unix"
+
+# Import organization (stable)
+reorder_imports = true
+reorder_modules = true
+
+# Code style (stable)
+use_small_heuristics = "Default"
+remove_nested_parens = true
+use_field_init_shorthand = true
+use_try_shorthand = true
+force_explicit_abi = true
+
+# Note: Additional formatting options require nightly rustfmt
+# To use nightly features, run: rustup toolchain install nightly
+# Then format with: cargo +nightly fmt
+# Nightly options include: group_imports, imports_granularity,
+# wrap_comments, normalize_comments, trailing_comma, and more
