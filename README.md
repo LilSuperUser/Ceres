@@ -1,6 +1,6 @@
 <div align="center">
   <img src="assets/images/logo.png" alt="Ceres Logo" width="800"/>
-  <h1>🌾 Ceres</h1>
+  <h1>Ceres</h1>
 </div>
 
 **Semantic search engine for open data portals.**
