@@ -1,3 +1,4 @@
+use anyhow::Context;
 use clap::Parser;
 use dotenvy::dotenv;
 use sqlx::postgres::PgPoolOptions;
@@ -11,7 +12,7 @@ use ceres::config::{Command, Config};
 use ceres::storage::DatasetRepository;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> anyhow::Result<()> {
     /// Load environment variables from .env file
     dotenv().ok();
 
@@ -30,7 +31,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .max_connections(5)
         .connect(&config.database_url)
         .await
-        .expect("Failed to connect to database");
+        .context("Failed to connect to database")?;
 
     /// Services
     let repo = DatasetRepository::new(pool);
@@ -42,7 +43,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             info!("Starting harvest for: {}", portal_url);
 
             // 1. Inizializza il client CKAN
-            let ckan = CkanClient::new(&portal_url).expect("Invalid CKAN configuration");
+            let ckan = CkanClient::new(&portal_url)
+                .context("Invalid CKAN portal URL")?;
 
             // 2. Scarica la lista degli ID (molto veloce)
             info!("Fetching package list...");
