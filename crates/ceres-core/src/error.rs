@@ -82,12 +82,93 @@ pub enum AppError {
     #[error("Empty response from API")]
     EmptyResponse,
 
+    /// Network or connection error.
+    ///
+    /// This error occurs when a network request fails due to connectivity issues,
+    /// DNS resolution failures, or the remote server being unreachable.
+    #[error("Network error: {0}")]
+    NetworkError(String),
+
+    /// Request timeout.
+    ///
+    /// This error occurs when a request takes longer than the configured timeout.
+    #[error("Request timed out after {0} seconds")]
+    Timeout(u64),
+
+    /// Rate limit exceeded.
+    ///
+    /// This error occurs when too many requests are made in a short period.
+    #[error("Rate limit exceeded. Please wait and try again.")]
+    RateLimitExceeded,
+
     /// Generic application error for cases not covered by specific variants.
     ///
     /// Use this sparingly - prefer creating specific error variants
     /// for better error handling and debugging.
     #[error("Error: {0}")]
     Generic(String),
+}
+
+impl AppError {
+    /// Returns a user-friendly error message suitable for CLI output.
+    pub fn user_message(&self) -> String {
+        match self {
+            AppError::DatabaseError(e) => {
+                if e.to_string().contains("connection") {
+                    "❌ Cannot connect to database. Is PostgreSQL running?\n   Try: docker-compose up -d".to_string()
+                } else {
+                    format!("❌ Database error: {}", e)
+                }
+            }
+            AppError::ClientError(msg) => {
+                if msg.contains("timeout") || msg.contains("timed out") {
+                    "❌ Request timed out. The portal may be slow or unreachable.\n   Try again later or check the portal URL.".to_string()
+                } else if msg.contains("connect") {
+                    format!("❌ Cannot connect to portal: {}\n   Check your internet connection and the portal URL.", msg)
+                } else {
+                    format!("❌ API error: {}", msg)
+                }
+            }
+            AppError::OpenAiError(msg) => {
+                if msg.contains("401") || msg.contains("Unauthorized") || msg.contains("invalid_api_key") {
+                    "❌ Invalid OpenAI API key.\n   Check your OPENAI_API_KEY environment variable.".to_string()
+                } else if msg.contains("429") || msg.contains("rate") {
+                    "❌ OpenAI rate limit reached.\n   Wait a moment and try again, or reduce concurrency.".to_string()
+                } else if msg.contains("insufficient_quota") {
+                    "❌ OpenAI quota exceeded.\n   Check your OpenAI account billing.".to_string()
+                } else {
+                    format!("❌ OpenAI error: {}", msg)
+                }
+            }
+            AppError::InvalidPortalUrl(url) => {
+                format!("❌ Invalid portal URL: {}\n   Example: https://dati.comune.milano.it", url)
+            }
+            AppError::NetworkError(msg) => {
+                format!("❌ Network error: {}\n   Check your internet connection.", msg)
+            }
+            AppError::Timeout(secs) => {
+                format!("❌ Request timed out after {} seconds.\n   The server may be overloaded. Try again later.", secs)
+            }
+            AppError::RateLimitExceeded => {
+                "❌ Too many requests. Please wait a moment and try again.".to_string()
+            }
+            AppError::EmptyResponse => {
+                "❌ The API returned no data. The portal may be temporarily unavailable.".to_string()
+            }
+            _ => format!("❌ {}", self),
+        }
+    }
+
+    /// Returns true if this error is retryable.
+    pub fn is_retryable(&self) -> bool {
+        matches!(
+            self,
+            AppError::NetworkError(_)
+                | AppError::Timeout(_)
+                | AppError::RateLimitExceeded
+                | AppError::ClientError(_)
+        )
+    }
 }
 
 #[cfg(test)]
@@ -125,5 +206,40 @@ mod tests {
         let serde_err = result.unwrap_err();
         let app_err: AppError = serde_err.into();
         assert!(matches!(app_err, AppError::SerializationError(_)));
+    }
+
+    #[test]
+    fn test_user_message_database_connection() {
+        let err = AppError::DatabaseError(sqlx::Error::PoolTimedOut);
+        let msg = err.user_message();
+        assert!(msg.contains("Database error"));
+    }
+
+    #[test]
+    fn test_user_message_openai_auth() {
+        let err = AppError::OpenAiError("401 Unauthorized".to_string());
+        let msg = err.user_message();
+        assert!(msg.contains("Invalid OpenAI API key"));
+    }
+
+    #[test]
+    fn test_user_message_rate_limit() {
+        let err = AppError::OpenAiError("429 rate limit".to_string());
+        let msg = err.user_message();
+        assert!(msg.contains("rate limit"));
+    }
+
+    #[test]
+    fn test_is_retryable() {
+        assert!(AppError::NetworkError("timeout".to_string()).is_retryable());
+        assert!(AppError::Timeout(30).is_retryable());
+        assert!(AppError::RateLimitExceeded.is_retryable());
+        assert!(!AppError::InvalidPortalUrl("bad".to_string()).is_retryable());
+    }
+
+    #[test]
+    fn test_timeout_error() {
+        let err = AppError::Timeout(30);
+        assert_eq!(err.to_string(), "Request timed out after 30 seconds");
     }
 }

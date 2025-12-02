@@ -358,3 +358,67 @@ fn escape_csv(s: &str) -> String {
         s.to_string()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_create_similarity_bar_full() {
+        let bar = create_similarity_bar(1.0);
+        assert_eq!(bar, "[██████████]");
+    }
+
+    #[test]
+    fn test_create_similarity_bar_half() {
+        let bar = create_similarity_bar(0.5);
+        assert_eq!(bar, "[█████░░░░░]");
+    }
+
+    #[test]
+    fn test_create_similarity_bar_empty() {
+        let bar = create_similarity_bar(0.0);
+        assert_eq!(bar, "[░░░░░░░░░░]");
+    }
+
+    #[test]
+    fn test_truncate_text_short() {
+        let text = "Short text";
+        let result = truncate_text(text, 50);
+        assert_eq!(result, "Short text");
+    }
+
+    #[test]
+    fn test_truncate_text_long() {
+        let text = "This is a very long text that should be truncated";
+        let result = truncate_text(text, 20);
+        assert_eq!(result, "This is a very long ...");
+    }
+
+    #[test]
+    fn test_truncate_text_with_newlines() {
+        let text = "Line 1\nLine 2\nLine 3";
+        let result = truncate_text(text, 50);
+        assert_eq!(result, "Line 1 Line 2 Line 3");
+    }
+
+    #[test]
+    fn test_escape_csv_simple() {
+        assert_eq!(escape_csv("simple"), "simple");
+    }
+
+    #[test]
+    fn test_escape_csv_with_comma() {
+        assert_eq!(escape_csv("hello, world"), "\"hello, world\"");
+    }
+
+    #[test]
+    fn test_escape_csv_with_quotes() {
+        assert_eq!(escape_csv("say \"hello\""), "\"say \"\"hello\"\"\"");
+    }
+
+    #[test]
+    fn test_escape_csv_with_newline() {
+        assert_eq!(escape_csv("line1\nline2"), "\"line1\nline2\"");
+    }
+}
