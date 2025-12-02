@@ -26,24 +26,51 @@ Open data portals are everywhere, but finding the right dataset is still painful
 
 Ceres solves this by creating a unified semantic index. Search by *meaning*, not just keywords.
 
-```bash
-$ ceres search "air quality monitoring stations"
+```
+$ ceres harvest https://dati.comune.milano.it
 
-🔍 Search Results for: "air quality monitoring stations"
+INFO ceres: Connecting to database...
+INFO ceres: Starting harvest for: https://dati.comune.milano.it
+INFO ceres: Fetching package list...
+INFO ceres: Found 2575 datasets. Starting concurrent processing...
+INFO ceres: [1/2575] ✓ Indexed: Catalogo CSV dei dataset (b74f2145-bb06-4891-87b2-32ffaccb3689)
+INFO ceres: [2/2575] ✓ Indexed: Biblioteche: numero dei prestiti... (d46f6782-a1ef-4e0a-9a8f-af0dd30037f2)
+...
+INFO ceres: Harvesting complete: 2575 successful, 0 failed
+```
 
-Found 3 matching datasets:
+```
+$ ceres search "trasporto pubblico" --limit 5
 
-1. [██████████] [91%] Centraline qualità aria
+🔍 Search Results for: "trasporto pubblico"
+
+Found 5 matching datasets:
+
+1. [████████░░] [78%] TPL - Percorsi linee di superficie
    📍 https://dati.comune.milano.it
-   🔗 https://dati.comune.milano.it/dataset/centraline-qualita-aria
+   🔗 https://dati.comune.milano.it/dataset/ds534-tpl-percorsi-linee-di-superficie
+   📝 Il dataset contiene i tracciati delle linee di trasporto pubblico di superficie...
 
-2. [████████░░] [87%] Stazioni monitoraggio atmosferico
-   📍 https://dati.arpalombardia.it
-   🔗 https://dati.arpalombardia.it/dataset/stazioni-monitoraggio
+2. [████████░░] [76%] TPL - Fermate linee di superficie
+   📍 https://dati.comune.milano.it
+   🔗 https://dati.comune.milano.it/dataset/ds535-tpl-fermate-linee-di-superficie
+   📝 Il dataset contiene le fermate delle linee di trasporto pubblico di superficie...
 
-3. [████████░░] [84%] Air quality sensor network
-   📍 https://dati.emilia-romagna.it
-   🔗 https://dati.emilia-romagna.it/dataset/air-quality-sensors
+3. [███████░░░] [72%] Mobilità: flussi veicolari rilevati dai spire
+   📍 https://dati.comune.milano.it
+   🔗 https://dati.comune.milano.it/dataset/ds418-mobilita-flussi-veicolari
+   📝 Dati sul traffico veicolare rilevati dalle spire elettromagnetiche...
+```
+
+```
+$ ceres stats
+
+📊 Database Statistics
+
+  Total datasets:        2575
+  With embeddings:       2575
+  Unique portals:        1
+  Last update:           2025-12-02 17:34:19 UTC
 ```
 
 ## Features
@@ -152,10 +179,11 @@ Environment Variables:
 ## Roadmap
 
 ### v0.0.1 — Initial Release ✅
-- CKAN harvester
-- Gemini embeddings (text-embedding-004)
+- CKAN harvester with concurrent processing
+- Gemini embeddings (text-embedding-004, 768 dimensions)
 - CLI with harvest, search, export, stats commands
 - PostgreSQL + pgvector backend
+- Multi-format export (JSON, JSONL, CSV)
 
 ### v0.1 — Enhancements
 - Portals configuration from `portals.toml`

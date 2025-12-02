@@ -206,7 +206,7 @@ impl DatasetRepository {
                     first_seen_at: row.first_seen_at,
                     last_updated_at: row.last_updated_at,
                 },
-                similarity_score: row.similarity_score,
+                similarity_score: row.similarity_score as f32,
             })
             .collect())
     }
@@ -343,7 +343,7 @@ struct SearchResultRow {
     metadata: Json<serde_json::Value>,
     first_seen_at: DateTime<Utc>,
     last_updated_at: DateTime<Utc>,
-    similarity_score: f32,
+    similarity_score: f64,
 }
 
 #[cfg(test)]
