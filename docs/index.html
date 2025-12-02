@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ceres</title>
+    <meta name="description" content="Semantic search engine for open data portals">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'IBM Plex Sans', system-ui, sans-serif;
+            background: #fafafa;
+            color: #1a1a1a;
+            line-height: 1.6;
+        }
+
+        a { color: inherit; }
+
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        header {
+            padding: 48px 0 32px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: #666;
+        }
+
+        nav {
+            margin-top: 24px;
+            display: flex;
+            gap: 24px;
+            font-size: 0.9rem;
+        }
+
+        nav a {
+            color: #666;
+            text-decoration: none;
+        }
+
+        nav a:hover {
+            color: #1a1a1a;
+        }
+
+        main {
+            padding: 48px 0;
+        }
+
+        section {
+            margin-bottom: 48px;
+        }
+
+        h2 {
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #999;
+            margin-bottom: 16px;
+        }
+
+        p + p {
+            margin-top: 16px;
+        }
+
+        .terminal {
+            background: #1a1a1a;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 24px 0;
+            overflow-x: auto;
+        }
+
+        .terminal code {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.85rem;
+            color: #e5e5e5;
+            line-height: 1.8;
+        }
+
+        .terminal .prompt { color: #888; }
+        .terminal .cmd { color: #fff; }
+        .terminal .out { color: #888; }
+        .terminal .hl { color: #7dd3fc; }
+        .terminal .ok { color: #86efac; }
+
+        .cols {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin: 24px 0;
+        }
+
+        @media (max-width: 600px) {
+            .cols { grid-template-columns: 1fr; }
+        }
+
+        .col h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .col p, .col ul {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .col ul {
+            padding-left: 20px;
+        }
+
+        .col li {
+            margin: 4px 0;
+        }
+
+        pre {
+            background: #f0f0f0;
+            border-radius: 4px;
+            padding: 16px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.8rem;
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+
+        .arch {
+            margin: 32px 0;
+        }
+
+        .arch img {
+            max-width: 100%;
+            border-radius: 4px;
+            border: 1px solid #e5e5e5;
+        }
+
+        footer {
+            padding: 32px 0;
+            border-top: 1px solid #e5e5e5;
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        footer a {
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Ceres</h1>
+            <p>Semantic search engine for open data portals</p>
+            <nav>
+                <a href="https://github.com/AndreaBozzo/Ceres">GitHub</a>
+                <a href="https://github.com/AndreaBozzo/Ceres/blob/master/README.md">Docs</a>
+                <a href="https://github.com/AndreaBozzo/Ceres/blob/master/LICENSE">License</a>
+            </nav>
+        </header>
+
+        <main>
+            <section>
+                <p>
+                    Ceres harvests metadata from CKAN portals and indexes them with vector embeddings.
+                    Instead of keyword matching, it lets you search datasets by meaning.
+                </p>
+                <p>
+                    Query "trasporto pubblico" and find results tagged as "mobilità", "TPL", or "bus schedules" — 
+                    even if those exact words don't appear in the title.
+                </p>
+            </section>
+
+            <section>
+                <h2>Demo</h2>
+                <div class="terminal"><code><span class="prompt">$</span> <span class="cmd">ceres harvest https://dati.comune.milano.it</span>
+
+<span class="out">Fetching package list...</span>
+<span class="out">Found 2575 datasets</span>
+<span class="ok">✓</span> <span class="out">Harvesting complete: 2575 indexed</span>
+
+<span class="prompt">$</span> <span class="cmd">ceres search "trasporto pubblico"</span>
+
+<span class="hl">78%</span>  TPL - Percorsi linee di superficie
+<span class="hl">76%</span>  TPL - Fermate linee di superficie  
+<span class="hl">72%</span>  Mobilità: flussi veicolari</code></div>
+            </section>
+
+            <section>
+                <h2>The problem</h2>
+                <p>
+                    Open data portals are everywhere but finding datasets is painful. Keyword search fails 
+                    ("public transport" won't match "mobility data"), portals are fragmented (Italy has 20+ regional ones),
+                    and there's no way to query across them.
+                </p>
+                <p>
+                    Ceres creates a unified semantic index. You search once, across all harvested portals, by meaning.
+                </p>
+            </section>
+
+            <section>
+                <h2>Stack</h2>
+                <div class="cols">
+                    <div class="col">
+                        <h3>Backend</h3>
+                        <ul>
+                            <li>Rust + Tokio</li>
+                            <li>PostgreSQL 16 + pgvector</li>
+                            <li>CKAN API v3</li>
+                        </ul>
+                    </div>
+                    <div class="col">
+                        <h3>Embeddings</h3>
+                        <ul>
+                            <li>Google Gemini</li>
+                            <li>text-embedding-004</li>
+                            <li>768 dimensions</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2>Quick start</h2>
+<pre>git clone https://github.com/AndreaBozzo/Ceres.git
+cd Ceres
+
+docker-compose up -d
+psql $DATABASE_URL -f migrations/202511290001_init.sql
+
+export GEMINI_API_KEY="your-key"
+cargo build --release
+
+./target/release/ceres harvest https://dati.comune.milano.it
+./target/release/ceres search "ambiente" --limit 5</pre>
+            </section>
+
+            <section>
+                <h2>Architecture</h2>
+                <div class="arch">
+                    <img src="assets/images/Ceres_architecture.png" alt="Architecture diagram">
+                </div>
+            </section>
+
+            <section>
+                <h2>Roadmap</h2>
+                <div class="cols">
+                    <div class="col">
+                        <h3>Now</h3>
+                        <p>CKAN harvester, Gemini embeddings, CLI, PostgreSQL + pgvector</p>
+                    </div>
+                    <div class="col">
+                        <h3>Next</h3>
+                        <p>REST API, Socrata/DCAT support, incremental harvesting, multilingual search</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Apache 2.0 · <a href="https://github.com/AndreaBozzo/Ceres">Source</a> · Named after the Roman goddess of harvest</p>
+        </footer>
+    </div>
+</body>
+</html>

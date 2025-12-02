@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/images/logo.jpeg" alt="Ceres Logo" width="800"/>
+  <img src="docs/assets/images/logo.jpeg" alt="Ceres Logo" width="800"/>
   <h1>Ceres</h1>
   <p><strong>Semantic search engine for open data portals</strong></p>
   <p>
@@ -174,7 +174,7 @@ Environment Variables:
 
 ## Architecture
 
-![Ceres Architecture Diagram](assets/images/Ceres_architecture.png)
+![Ceres Architecture Diagram](docs/assets/images/Ceres_architecture.png)
 
 ## Roadmap
 
