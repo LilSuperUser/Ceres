@@ -151,10 +151,7 @@ impl AppError {
                 )
             }
             AppError::NetworkError(msg) => {
-                format!(
-                    "Network error: {}\n   Check your internet connection.",
-                    msg
-                )
+                format!("Network error: {}\n   Check your internet connection.", msg)
             }
             AppError::Timeout(secs) => {
                 format!("Request timed out after {} seconds.\n   The server may be overloaded. Try again later.", secs)
@@ -163,8 +160,7 @@ impl AppError {
                 "Too many requests. Please wait a moment and try again.".to_string()
             }
             AppError::EmptyResponse => {
-                "The API returned no data. The portal may be temporarily unavailable."
-                    .to_string()
+                "The API returned no data. The portal may be temporarily unavailable.".to_string()
             }
             _ => self.to_string(),
         }
