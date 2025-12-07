@@ -80,6 +80,12 @@ $ ceres stats
 - **Multi-format Export** — Export to JSON, JSON Lines, or CSV
 - **Database Statistics** — Monitor indexed datasets and portals
 
+## Cost-Effectiveness
+
+API costs, based on the Gemini embedding model, are almost negligible, making the solution extremely efficient even for personal projects or those with limited budgets.
+
+For a catalog of 50,000 datasets, the initial cost is a few dollars, while monthly maintenance is around a few cents.
+
 ## Tech Stack
 
 | Component | Technology |
