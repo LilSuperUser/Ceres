@@ -3,6 +3,11 @@
   <h1>Ceres</h1>
   <p><strong>Semantic search engine for open data portals</strong></p>
   <p>
+    <a href="https://crates.io/crates/ceres-cli"><img src="https://img.shields.io/crates/v/ceres-cli.svg" alt="crates.io"></a>
+    <a href="https://github.com/AndreaBozzo/Ceres/actions"><img src="https://github.com/AndreaBozzo/Ceres/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+    <a href="https://github.com/AndreaBozzo/Ceres/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" alt="License"></a>
+  </p>
+  <p>
     <a href="#quick-start">Quick Start</a> •
     <a href="#features">Features</a> •
     <a href="#usage">Usage</a> •
@@ -138,13 +143,21 @@ As shown, the initial cost to index a substantial number of datasets is just a f
 - Docker & Docker Compose
 - Google Gemini API key ([get one free](https://aistudio.google.com/apikey))
 
+### Installation
+
+```bash
+# Install from crates.io
+cargo install ceres-cli
+
+# Or build from source
+git clone https://github.com/AndreaBozzo/Ceres.git
+cd Ceres
+cargo build --release
+```
+
 ### Setup
 
 ```bash
-# Clone and enter directory
-git clone https://github.com/AndreaBozzo/Ceres.git
-cd Ceres
-
 # Start PostgreSQL with pgvector
 docker-compose up -d
 
@@ -158,9 +171,6 @@ make migrate
 # Configure environment
 cp .env.example .env
 # Edit .env with your Gemini API key
-
-# Build
-cargo build --release
 ```
 
 > **💡 Tip**: This project includes a Makefile with convenient shortcuts. Run `make help` to see all available commands.

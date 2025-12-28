@@ -161,34 +161,48 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
-      - name: Publish ceres-core
-        run: cargo publish -p ceres-core
+      - name: Publish crates to crates.io
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          publish_crate() {
+            local crate=$1
+            local max_retries=3
+            local retry=0
 
-      - name: Wait for crates.io indexing
-        run: sleep 30
+            while [ $retry -lt $max_retries ]; do
+              echo "Publishing $crate (attempt $((retry + 1))/$max_retries)..."
+              if cargo publish -p "$crate" 2>&1; then
+                echo "$crate published successfully"
+                return 0
+              fi
 
-      - name: Publish ceres-client
-        run: cargo publish -p ceres-client
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+              retry=$((retry + 1))
+              if [ $retry -lt $max_retries ]; then
+                echo "Retrying in 60 seconds..."
+                sleep 60
+              fi
+            done
 
-      - name: Wait for crates.io indexing
-        run: sleep 30
+            echo "::error::Failed to publish $crate after $max_retries attempts"
+            return 1
+          }
 
-      - name: Publish ceres-db
-        run: cargo publish -p ceres-db
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          # Publish in dependency order with wait between each
+          publish_crate ceres-core
+          echo "Waiting 60s for crates.io indexing..."
+          sleep 60
 
-      - name: Wait for crates.io indexing
-        run: sleep 30
+          publish_crate ceres-client
+          echo "Waiting 60s for crates.io indexing..."
+          sleep 60
 
-      - name: Publish ceres-cli
-        run: cargo publish -p ceres-cli
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          publish_crate ceres-db
+          echo "Waiting 60s for crates.io indexing..."
+          sleep 60
+
+          publish_crate ceres-cli
+          echo "All crates published successfully"
 
   release:
     name: Create GitHub Release
