@@ -430,4 +430,127 @@ enabled = false
             assert!(p.ends_with("portals.toml"));
         }
     }
+
+    // =========================================================================
+    // load_portals_config() tests with real files
+    // =========================================================================
+
+    use std::io::Write;
+    use tempfile::NamedTempFile;
+
+    #[test]
+    fn test_load_portals_config_valid_file() {
+        let mut file = NamedTempFile::new().unwrap();
+        writeln!(
+            file,
+            r#"
+[[portals]]
+name = "test"
+url = "https://test.com"
+"#
+        )
+        .unwrap();
+
+        let config = load_portals_config(Some(file.path().to_path_buf()))
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(config.portals.len(), 1);
+        assert_eq!(config.portals[0].name, "test");
+        assert_eq!(config.portals[0].url, "https://test.com");
+    }
+
+    #[test]
+    fn test_load_portals_config_custom_path_not_found() {
+        let result = load_portals_config(Some("/nonexistent/path/to/config.toml".into()));
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(matches!(err, AppError::ConfigError(_)));
+    }
+
+    #[test]
+    fn test_load_portals_config_invalid_toml() {
+        let mut file = NamedTempFile::new().unwrap();
+        writeln!(file, "this is not valid toml {{{{").unwrap();
+
+        let result = load_portals_config(Some(file.path().to_path_buf()));
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(matches!(err, AppError::ConfigError(_)));
+    }
+
+    #[test]
+    fn test_load_portals_config_multiple_portals_with_enabled_filter() {
+        let mut file = NamedTempFile::new().unwrap();
+        writeln!(
+            file,
+            r#"
+[[portals]]
+name = "enabled-portal"
+url = "https://a.com"
+
+[[portals]]
+name = "disabled-portal"
+url = "https://b.com"
+enabled = false
+
+[[portals]]
+name = "another-enabled"
+url = "https://c.com"
+enabled = true
+"#
+        )
+        .unwrap();
+
+        let config = load_portals_config(Some(file.path().to_path_buf()))
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(config.portals.len(), 3);
+        assert_eq!(config.enabled_portals().len(), 2);
+    }
+
+    #[test]
+    fn test_load_portals_config_with_all_fields() {
+        let mut file = NamedTempFile::new().unwrap();
+        writeln!(
+            file,
+            r#"
+[[portals]]
+name = "full-config"
+url = "https://example.com"
+type = "ckan"
+enabled = true
+description = "A fully configured portal"
+"#
+        )
+        .unwrap();
+
+        let config = load_portals_config(Some(file.path().to_path_buf()))
+            .unwrap()
+            .unwrap();
+
+        let portal = &config.portals[0];
+        assert_eq!(portal.name, "full-config");
+        assert_eq!(portal.url, "https://example.com");
+        assert_eq!(portal.portal_type, "ckan");
+        assert!(portal.enabled);
+        assert_eq!(
+            portal.description,
+            Some("A fully configured portal".to_string())
+        );
+    }
+
+    #[test]
+    fn test_load_portals_config_empty_portals_array() {
+        let mut file = NamedTempFile::new().unwrap();
+        writeln!(file, "portals = []").unwrap();
+
+        let config = load_portals_config(Some(file.path().to_path_buf()))
+            .unwrap()
+            .unwrap();
+
+        assert!(config.portals.is_empty());
+        assert!(config.enabled_portals().is_empty());
+    }
 }

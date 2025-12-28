@@ -311,4 +311,135 @@ mod tests {
         let decision = needs_reprocessing(existing.as_ref(), &hash);
         assert!(!decision.is_legacy());
     }
+
+    // =========================================================================
+    // PortalHarvestResult tests
+    // =========================================================================
+
+    #[test]
+    fn test_portal_harvest_result_success() {
+        let stats = SyncStats {
+            unchanged: 5,
+            updated: 3,
+            created: 2,
+            failed: 0,
+        };
+        let result = PortalHarvestResult::success(
+            "test".to_string(),
+            "https://example.com".to_string(),
+            stats,
+        );
+        assert!(result.is_success());
+        assert!(result.error.is_none());
+        assert_eq!(result.stats.total(), 10);
+        assert_eq!(result.portal_name, "test");
+        assert_eq!(result.portal_url, "https://example.com");
+    }
+
+    #[test]
+    fn test_portal_harvest_result_failure() {
+        let result = PortalHarvestResult::failure(
+            "test".to_string(),
+            "https://example.com".to_string(),
+            "Connection timeout".to_string(),
+        );
+        assert!(!result.is_success());
+        assert_eq!(result.error, Some("Connection timeout".to_string()));
+        assert_eq!(result.stats.total(), 0);
+    }
+
+    // =========================================================================
+    // BatchHarvestSummary tests
+    // =========================================================================
+
+    #[test]
+    fn test_batch_harvest_summary_empty() {
+        let summary = BatchHarvestSummary::new();
+        assert_eq!(summary.successful_count(), 0);
+        assert_eq!(summary.failed_count(), 0);
+        assert_eq!(summary.total_datasets(), 0);
+        assert_eq!(summary.total_portals(), 0);
+    }
+
+    #[test]
+    fn test_batch_harvest_summary_mixed_results() {
+        let mut summary = BatchHarvestSummary::new();
+
+        let stats1 = SyncStats {
+            unchanged: 10,
+            updated: 5,
+            created: 3,
+            failed: 2,
+        };
+        summary.add(PortalHarvestResult::success(
+            "a".into(),
+            "https://a.com".into(),
+            stats1,
+        ));
+
+        summary.add(PortalHarvestResult::failure(
+            "b".into(),
+            "https://b.com".into(),
+            "error".into(),
+        ));
+
+        let stats2 = SyncStats {
+            unchanged: 20,
+            updated: 0,
+            created: 0,
+            failed: 0,
+        };
+        summary.add(PortalHarvestResult::success(
+            "c".into(),
+            "https://c.com".into(),
+            stats2,
+        ));
+
+        assert_eq!(summary.total_portals(), 3);
+        assert_eq!(summary.successful_count(), 2);
+        assert_eq!(summary.failed_count(), 1);
+        assert_eq!(summary.total_datasets(), 40); // 20 + 20 + 0 (failed portal has 0)
+    }
+
+    #[test]
+    fn test_batch_harvest_summary_all_successful() {
+        let mut summary = BatchHarvestSummary::new();
+
+        let stats = SyncStats {
+            unchanged: 5,
+            updated: 0,
+            created: 5,
+            failed: 0,
+        };
+        summary.add(PortalHarvestResult::success(
+            "portal1".into(),
+            "https://portal1.com".into(),
+            stats,
+        ));
+
+        assert_eq!(summary.successful_count(), 1);
+        assert_eq!(summary.failed_count(), 0);
+        assert_eq!(summary.total_datasets(), 10);
+    }
+
+    #[test]
+    fn test_batch_harvest_summary_all_failed() {
+        let mut summary = BatchHarvestSummary::new();
+
+        summary.add(PortalHarvestResult::failure(
+            "portal1".into(),
+            "https://portal1.com".into(),
+            "error1".into(),
+        ));
+        summary.add(PortalHarvestResult::failure(
+            "portal2".into(),
+            "https://portal2.com".into(),
+            "error2".into(),
+        ));
+
+        assert_eq!(summary.successful_count(), 0);
+        assert_eq!(summary.failed_count(), 2);
+        assert_eq!(summary.total_datasets(), 0);
+        assert_eq!(summary.total_portals(), 2);
+    }
 }
