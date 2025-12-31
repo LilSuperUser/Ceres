@@ -130,6 +130,24 @@ pub trait DatasetStore: Send + Sync + Clone {
         original_id: &str,
     ) -> impl Future<Output = Result<(), AppError>> + Send;
 
+    /// Batch updates timestamps for multiple unchanged datasets.
+    ///
+    /// More efficient than calling `update_timestamp_only` for each dataset.
+    ///
+    /// # Arguments
+    ///
+    /// * `portal_url` - The source portal URL
+    /// * `original_ids` - Slice of dataset original IDs to update
+    ///
+    /// # Returns
+    ///
+    /// The number of rows actually updated.
+    fn batch_update_timestamps(
+        &self,
+        portal_url: &str,
+        original_ids: &[String],
+    ) -> impl Future<Output = Result<u64, AppError>> + Send;
+
     /// Inserts or updates a dataset.
     ///
     /// # Arguments

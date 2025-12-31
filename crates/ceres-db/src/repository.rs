@@ -158,6 +158,35 @@ impl DatasetRepository {
         Ok(result.rows_affected() > 0)
     }
 
+    /// Batch updates timestamps for multiple unchanged datasets.
+    ///
+    /// Uses a single UPDATE with ANY() for efficiency instead of N individual updates.
+    /// Returns the number of rows actually updated.
+    pub async fn batch_update_timestamps(
+        &self,
+        portal_url: &str,
+        original_ids: &[String],
+    ) -> Result<u64, AppError> {
+        if original_ids.is_empty() {
+            return Ok(0);
+        }
+
+        let result = sqlx::query(
+            r#"
+            UPDATE datasets
+            SET last_updated_at = NOW()
+            WHERE source_portal = $1 AND original_id = ANY($2)
+            "#,
+        )
+        .bind(portal_url)
+        .bind(original_ids)
+        .execute(&self.pool)
+        .await
+        .map_err(AppError::DatabaseError)?;
+
+        Ok(result.rows_affected())
+    }
+
     /// Retrieves a dataset by UUID.
     pub async fn get(&self, id: Uuid) -> Result<Option<Dataset>, AppError> {
         let query = format!("SELECT {} FROM datasets WHERE id = $1", DATASET_COLUMNS);
@@ -327,6 +356,14 @@ impl ceres_core::traits::DatasetStore for DatasetRepository {
     ) -> Result<(), AppError> {
         DatasetRepository::update_timestamp_only(self, portal_url, original_id).await?;
         Ok(())
+    }
+
+    async fn batch_update_timestamps(
+        &self,
+        portal_url: &str,
+        original_ids: &[String],
+    ) -> Result<u64, AppError> {
+        DatasetRepository::batch_update_timestamps(self, portal_url, original_ids).await
     }
 
     async fn upsert(&self, dataset: &NewDataset) -> Result<Uuid, AppError> {

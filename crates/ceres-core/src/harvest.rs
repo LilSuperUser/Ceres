@@ -33,7 +33,8 @@
 //! Each dataset embedding is generated individually. Gemini API may support
 //! batching multiple texts per request, reducing latency and API calls.
 
-use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::{Arc, Mutex};
 
 use futures::stream::{self, StreamExt};
 use pgvector::Vector;
@@ -184,15 +185,22 @@ where
         reporter.report(HarvestEvent::PortalDatasetsFound { count: total });
 
         let stats = Arc::new(AtomicSyncStats::new());
+        let unchanged_ids: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+        let processed_count = Arc::new(AtomicUsize::new(0));
+        let last_reported = Arc::new(AtomicUsize::new(0));
 
-        let _results: Vec<_> = stream::iter(ids.into_iter().enumerate())
-            .map(|(_, id)| {
+        // Report progress every 5% or minimum 50 items
+        let report_interval = std::cmp::max(total / 20, 50);
+
+        let _results: Vec<_> = stream::iter(ids.into_iter())
+            .map(|id| {
                 let portal_client = portal_client.clone();
                 let embedding = self.embedding.clone();
                 let store = self.store.clone();
                 let portal_url = portal_url.to_string();
                 let existing_hashes = existing_hashes.clone();
                 let stats = Arc::clone(&stats);
+                let unchanged_ids = Arc::clone(&unchanged_ids);
 
                 async move {
                     let portal_data = match portal_client.get_dataset(&id).await {
@@ -212,17 +220,9 @@ where
                     match decision.outcome {
                         SyncOutcome::Unchanged => {
                             stats.record(SyncOutcome::Unchanged);
-
-                            if let Err(e) = store
-                                .update_timestamp_only(&portal_url, &new_dataset.original_id)
-                                .await
-                            {
-                                // Non-fatal: timestamp update failure doesn't affect data integrity
-                                tracing::warn!(
-                                    dataset_id = %new_dataset.original_id,
-                                    error = %e,
-                                    "Failed to update timestamp for unchanged dataset"
-                                );
+                            // Collect ID for batch update instead of individual update
+                            if let Ok(mut ids) = unchanged_ids.lock() {
+                                ids.push(new_dataset.original_id);
                             }
                             return Ok(());
                         }
@@ -269,8 +269,50 @@ where
                 }
             })
             .buffer_unordered(self.config.concurrency)
+            .inspect(|_| {
+                let current = processed_count.fetch_add(1, Ordering::Relaxed) + 1;
+                let last = last_reported.load(Ordering::Relaxed);
+
+                // Report progress at intervals
+                let should_report = current >= last + report_interval || current == total;
+                if should_report
+                    && last_reported
+                        .compare_exchange(last, current, Ordering::SeqCst, Ordering::Relaxed)
+                        .is_ok()
+                {
+                    let current_stats = stats.to_stats();
+                    reporter.report(HarvestEvent::DatasetProcessed {
+                        current,
+                        total,
+                        created: current_stats.created,
+                        updated: current_stats.updated,
+                        unchanged: current_stats.unchanged,
+                        failed: current_stats.failed,
+                    });
+                }
+            })
             .collect()
             .await;
+
+        // Batch update timestamps for unchanged datasets
+        let unchanged_list = unchanged_ids
+            .lock()
+            .ok()
+            .map(|g| g.clone())
+            .unwrap_or_default();
+        if !unchanged_list.is_empty() {
+            if let Err(e) = self
+                .store
+                .batch_update_timestamps(portal_url, &unchanged_list)
+                .await
+            {
+                tracing::warn!(
+                    count = unchanged_list.len(),
+                    error = %e,
+                    "Failed to batch update timestamps for unchanged datasets"
+                );
+            }
+        }
 
         Ok(stats.to_stats())
     }

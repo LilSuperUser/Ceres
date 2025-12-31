@@ -32,36 +32,33 @@ Open data portals are everywhere, but finding the right dataset is still painful
 Ceres solves this by creating a unified semantic index. Search by *meaning*, not just keywords.
 
 ```
-$ ceres harvest --config portals.toml
+$ ceres harvest
 
-INFO ceres: ───────────────────────────────────────────────────────
-INFO ceres: [Portal 1/2] milano (https://dati.comune.milano.it)
-INFO ceres: ───────────────────────────────────────────────────────
-INFO ceres: Syncing portal: https://dati.comune.milano.it
-INFO ceres: Found 2575 existing datasets
-INFO ceres: Found 2575 datasets on portal
-INFO ceres: [1/2575] = Unchanged: Catalogo CSV dei dataset
-...
-INFO ceres: [Portal 1/2] Completed: 2575 datasets (0 created, 0 updated, 2575 unchanged)
+INFO [Portal 1/2] milano (https://dati.comune.milano.it)
+INFO Found 2575 existing dataset(s) in database
+INFO Found 2575 dataset(s) on portal
+INFO Progress: 512/2575 (19%) - 0 new, 0 updated, 512 unchanged, 0 failed
+INFO Progress: 1024/2575 (39%) - 0 new, 0 updated, 1024 unchanged, 0 failed
+INFO Progress: 1536/2575 (59%) - 0 new, 0 updated, 1536 unchanged, 0 failed
+INFO Progress: 2048/2575 (79%) - 0 new, 0 updated, 2048 unchanged, 0 failed
+INFO Progress: 2575/2575 (100%) - 0 new, 0 updated, 2575 unchanged, 0 failed
+INFO [Portal 1/2] milano completed: 2575 dataset(s) (0 created, 0 updated, 2575 unchanged)
 
-INFO ceres: ───────────────────────────────────────────────────────
-INFO ceres: [Portal 2/2] sicilia (https://dati.regione.sicilia.it)
-INFO ceres: ───────────────────────────────────────────────────────
-INFO ceres: Syncing portal: https://dati.regione.sicilia.it
-INFO ceres: Found 184 existing datasets
-INFO ceres: Found 184 datasets on portal
-INFO ceres: [1/184] = Unchanged: Agenzie di viaggio
-...
-INFO ceres: [Portal 2/2] Completed: 184 datasets (0 created, 0 updated, 184 unchanged)
+INFO [Portal 2/2] sicilia (https://dati.regione.sicilia.it)
+INFO Found 186 existing dataset(s) in database
+INFO Found 186 dataset(s) on portal
+INFO Progress: 100/186 (53%) - 2 new, 1 updated, 97 unchanged, 0 failed
+INFO Progress: 186/186 (100%) - 2 new, 1 updated, 183 unchanged, 0 failed
+INFO [Portal 2/2] sicilia completed: 186 dataset(s) (2 created, 1 updated, 183 unchanged)
 
-INFO ceres: ═══════════════════════════════════════════════════════
-INFO ceres: BATCH HARVEST COMPLETE
-INFO ceres: ═══════════════════════════════════════════════════════
-INFO ceres:   Portals processed:   2
-INFO ceres:   Successful:          2
-INFO ceres:   Failed:              0
-INFO ceres:   Total datasets:      2759
-INFO ceres: ═══════════════════════════════════════════════════════
+═══════════════════════════════════════════════════════
+BATCH HARVEST COMPLETE
+═══════════════════════════════════════════════════════
+  Portals processed:   2
+  Successful:          2
+  Failed:              0
+  Total datasets:      2761
+═══════════════════════════════════════════════════════
 ```
 
 ```
@@ -92,10 +89,10 @@ $ ceres stats
 
 📊 Database Statistics
 
-  Total datasets:        2575
-  With embeddings:       2575
-  Unique portals:        1
-  Last update:           2025-12-02 17:34:19 UTC
+  Total datasets:        2761
+  With embeddings:       2761
+  Unique portals:        2
+  Last update:           2025-12-31 12:18:35 UTC
 ```
 
 ## Features
@@ -103,6 +100,7 @@ $ ceres stats
 - **CKAN Harvester** — Fetch datasets from any CKAN-compatible portal
 - **Multi-portal Batch Harvest** — Configure multiple portals in `portals.toml` and harvest them all at once
 - **Delta Harvesting** — Only regenerate embeddings for changed datasets (99.8% API cost savings)
+- **Real-time Progress** — Live progress reporting during harvest with batch timestamp updates
 - **Semantic Search** — Find datasets by meaning using Gemini embeddings
 - **Multi-format Export** — Export to JSON, JSON Lines, or CSV
 - **Database Statistics** — Monitor indexed datasets and portals

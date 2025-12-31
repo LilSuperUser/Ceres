@@ -41,6 +41,22 @@ pub enum HarvestEvent<'a> {
         count: usize,
     },
 
+    /// Progress update during dataset processing.
+    DatasetProcessed {
+        /// Number of datasets processed so far.
+        current: usize,
+        /// Total number of datasets to process.
+        total: usize,
+        /// Counts by outcome type.
+        created: usize,
+        /// Number of updated datasets.
+        updated: usize,
+        /// Number of unchanged datasets.
+        unchanged: usize,
+        /// Number of failed datasets.
+        failed: usize,
+    },
+
     /// Single portal harvest completed successfully.
     PortalCompleted {
         /// Zero-based index of the current portal.
@@ -150,6 +166,20 @@ impl ProgressReporter for TracingReporter {
             HarvestEvent::PortalDatasetsFound { count } => {
                 info!("Found {} dataset(s) on portal", count);
             }
+            HarvestEvent::DatasetProcessed {
+                current,
+                total,
+                created,
+                updated,
+                unchanged,
+                failed,
+            } => {
+                let pct = (current as f64 / total as f64 * 100.0) as u8;
+                info!(
+                    "Progress: {}/{} ({}%) - {} new, {} updated, {} unchanged, {} failed",
+                    current, total, pct, created, updated, unchanged, failed
+                );
+            }
             HarvestEvent::PortalCompleted {
                 portal_index,
                 total_portals,
@@ -219,6 +249,14 @@ mod tests {
         });
         reporter.report(HarvestEvent::ExistingDatasetsFound { count: 10 });
         reporter.report(HarvestEvent::PortalDatasetsFound { count: 20 });
+        reporter.report(HarvestEvent::DatasetProcessed {
+            current: 10,
+            total: 20,
+            created: 2,
+            updated: 3,
+            unchanged: 5,
+            failed: 0,
+        });
 
         let stats = SyncStats {
             unchanged: 5,
