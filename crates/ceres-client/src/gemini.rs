@@ -229,6 +229,16 @@ impl GeminiClient {
     }
 }
 
+// =============================================================================
+// Trait Implementation: EmbeddingProvider
+// =============================================================================
+
+impl ceres_core::traits::EmbeddingProvider for GeminiClient {
+    async fn generate(&self, text: &str) -> Result<Vec<f32>, AppError> {
+        self.get_embeddings(text).await
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
