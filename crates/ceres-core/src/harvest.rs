@@ -32,6 +32,22 @@
 //! TODO(performance): Batch embedding API calls
 //! Each dataset embedding is generated individually. Gemini API may support
 //! batching multiple texts per request, reducing latency and API calls.
+//!
+//! TODO(server): Implement persistent job queue for REST API
+//! When transitioning to ceres-server, avoid spawning long-running harvest tasks
+//! directly in HTTP handlers. Instead:
+//! - Create a `harvest_jobs` table in Postgres (consider `sqlx-mq` crate)
+//! - On POST /api/harvest, insert job with status='pending', return 202 Accepted + job_id
+//! - Separate worker process picks up jobs, updates status: running -> completed/failed
+//! - This ensures recoverability on server restart and visibility into failed harvests
+//!
+//! TODO(server): Add CancellationToken support for graceful shutdown
+//! Modify `sync_portal` signature to accept `tokio_util::sync::CancellationToken`.
+//! Pass it down to processing loops. On cancellation:
+//! - Stop making new API requests
+//! - Save partial statistics to database
+//! - Return early with partial results
+//!   This enables clean server deployments without losing harvest progress.
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};

@@ -17,6 +17,19 @@
 //! - Cohere embed-multilingual-v3.0
 //! - E5-multilingual (local, for cross-language search)
 //! - Ollama (local embeddings)
+//!
+//! TODO(observability): Add OpenTelemetry instrumentation for cloud deployment
+//! Use `tracing-opentelemetry` crate to export spans to cloud observability platforms
+//! (AWS X-Ray, GCP Cloud Trace, Azure Monitor). Add `#[instrument]` spans on:
+//! - `get_embeddings()` - track API latency, token counts
+//! - `sync_portal()` in harvest.rs - track harvest duration breakdown
+//! -  This enables "waterfall" visualization showing time spent in each component
+//!    (e.g., 80% Gemini API wait, 20% DB insert).
+//!
+//! TODO(security): Encrypt API keys for multi-tenant deployment
+//! If supporting user-provided Gemini/CKAN API keys, store them encrypted
+//! in the database using `age` or `ring` crates instead of plaintext in .env.
+//! Consider a `api_keys` table with encrypted_key column and per-user isolation.
 
 use ceres_core::HttpConfig;
 use ceres_core::error::{AppError, GeminiErrorDetails, GeminiErrorKind};

@@ -155,7 +155,7 @@ As shown, the initial cost to index a substantial number of datasets is just a f
 
 ### Prerequisites
 
-- Rust 1.85+
+- Rust 1.87+
 - Docker & Docker Compose
 - Google Gemini API key ([get one free](https://aistudio.google.com/apikey))
 
@@ -295,15 +295,13 @@ make help
 ### v0.2 — Multi-portal & API
 - Incremental harvesting (time-based metadata filtering)
 - REST API
-- Socrata support
-- DCAT-AP harvester (EU portals)
-
-### v0.3 — European scale
+- Graceful shutdown
+### Future
 - Multilingual embeddings (E5-multilingual)
 - Cross-language search
 - data.europa.eu integration
-
-### Future
+- Socrata support
+- DCAT-AP harvester (EU portals)
 - Switchable embedding providers
 - Schema-level search
 - Data quality scoring

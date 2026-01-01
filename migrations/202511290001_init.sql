@@ -31,4 +31,17 @@ CREATE TABLE IF NOT EXISTS datasets (
 -- Index for vector search (HNSW is the fastest for approximate queries)
 -- Note: requires data in the table to be created effectively, 
 -- but we define it here for completeness.
+--
+-- TODO(performance): Tune HNSW parameters for production scale
+-- For millions of datasets, consider explicit parameters:
+--   CREATE INDEX ON datasets USING hnsw (embedding vector_cosine_ops)
+--   WITH (m = 16, ef_construction = 64);
+-- Higher values = better recall, slower build time.
+-- See: https://github.com/pgvector/pgvector#hnsw
+--
+-- TODO(performance): Dynamic ef_search tuning in search queries
+-- Before executing ORDER BY embedding <-> query, set:
+--   SET LOCAL hnsw.ef_search = 40;  -- or higher for better precision
+-- This should be done per-transaction in the search service
+-- to balance precision vs speed dynamically.
 CREATE INDEX ON datasets USING hnsw (embedding vector_cosine_ops);

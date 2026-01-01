@@ -13,6 +13,14 @@
 //! This crate is designed to be reusable by different frontends (CLI, server, etc.).
 //! Business logic is decoupled from I/O concerns through traits:
 //!
+//! # Server Development Notes (ceres-server)
+//!
+//! TODO(server): Use utoipa for automatic OpenAPI documentation
+//! When creating ceres-server, use the `utoipa` crate (compatible with Axum/Actix)
+//! to auto-generate OpenAPI specs from Rust types and handlers via derive macros.
+//! Expose `/swagger-ui` endpoint for interactive API documentation.
+//! This makes the API immediately usable by frontend developers without reading code.
+//!
 //! - [`EmbeddingProvider`] - abstracts embedding generation (e.g., Gemini API)
 //! - [`DatasetStore`] - abstracts database operations (e.g., PostgreSQL)
 //! - [`PortalClient`] - abstracts portal access (e.g., CKAN API)
